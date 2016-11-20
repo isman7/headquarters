@@ -123,7 +123,7 @@ class MainFrame(tk.Frame):
 
     def setup_icon(self):
         resources = os.path.join(os.path.dirname(__file__), "resources")
-        icon_path = os.path.join(resources, "tkinter.png")
+        icon_path = os.path.join(resources, "logo.png")
         if os.path.exists(icon_path):
             self.icon = tk.PhotoImage(file=icon_path)
             # noinspection PyProtectedMember

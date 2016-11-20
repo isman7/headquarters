@@ -30,14 +30,14 @@ def server_static(path):
     return static_file(path, root='/'.join([abspath, 'static']))
 
 
-@app.route('/empty/')
-def index(host="http://{}:{}".format(args.H, args.p)):
-    return template('starter', host=host)
+# @app.route('/empty/')
+# def index(host="http://{}:{}".format(args.H, args.p)):
+#     return template('starter', host=host)
 
 
 @app.route('/home/')
 def index(host="http://{}:{}".format(args.H, args.p)):
-    return template('index', host=host)
+    return template('starter', host=host)
 
 
 @app.route('/pid/')
