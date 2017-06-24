@@ -2,9 +2,8 @@ from cefpython3 import cefpython as cef
 import sys
 import os
 import logging
-import subprocess
 import argparse
-from urllib import urlopen
+from app import bottle_main_thread
 try:
     import tkinter as tk
 except ImportError:
@@ -15,7 +14,9 @@ logger = logging.getLogger()
 
 
 def main(arguments):
-    subprocess.Popen(["python", "bottle_server.py", "-H", arguments.H, "-p", arguments.p])
+    # server = subprocess.Popen([sys.executable, "bottle_server.py", "-h", arguments.H, "-p", arguments.p])
+    server_thread = bottle_main_thread(host=arguments.H, port=arguments.p)
+    server_thread.start()
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
     logger.info("CEF Python {ver}".format(ver=cef.__version__))
@@ -24,7 +25,7 @@ def main(arguments):
     assert cef.__version__ >= "53.1", "CEF Python v53.1+ required to run this"
     sys.excepthook = cef.ExceptHook  # To shutdown all CEF processes on error
     cef.Initialize()
-    app = MainFrame(tk.Tk(), **vars(arguments))
+    app = MainFrame(tk.Tk())
     app.mainloop()
     cef.Shutdown()
 
@@ -34,14 +35,16 @@ class ClientHandler(object):
     def __init__(self, **kwargs):
         self.host = kwargs.pop("host", "localhost")
         self.port = kwargs.pop("port", "8080")
+        self.serverpid = kwargs.get("serverpid")
 
-    def OnBeforeClose(self, browser):
-        """Called just before a browser is destroyed."""
-        serverpid = urlopen("http://{0}:{1}/pid/".format(self.host, self.port)).read()
-        subprocess.Popen('kill {0}'.format(serverpid), shell=True)
-        if not browser.IsPopup():
-            # Exit app when main window is closed.
-            cef.QuitMessageLoop()
+    # def OnBeforeClose(self, browser):
+    #     """Called just before a browser is destroyed."""
+    #     serverpid = urlopen("http://{0}:{1}/pid/".format(self.host, self.port)).read()
+    #     print self.serverpid
+    #     subprocess.Popen('kill {0}'.format(self.serverpid))
+    #     if not browser.IsPopup():
+    #         # Exit app when main window is closed.
+    #         cef.QuitMessageLoop()
 
 class MainFrame(tk.Frame):
 
@@ -269,7 +272,7 @@ class BrowserFrame(tk.Frame):
         self.browser = cef.CreateBrowserSync(window_info,
                                              url="http://{0}:{1}/home/".format(self.host, self.port))
         self.browser.SetClientHandler(LoadHandler(self))
-        self.browser.SetClientHandler(ClientHandler(host=self.host, port=self.port))
+        # self.browser.SetClientHandler(ClientHandler())
         # FocusHandler requires cefpython 53.2+
         if cef.__version__ >= "53.2":
             self.browser.SetClientHandler(FocusHandler(self))
